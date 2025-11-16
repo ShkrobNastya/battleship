@@ -1,5 +1,5 @@
+import { WebSocketServer, RawData } from 'ws';
 import { httpServer } from "./src/http_server/index";
-import { WebSocketServer } from 'ws';
 import { handleRequests } from "./src/handlers/messageHandler";
 import {sendJSON} from "./src/utils/helpers";
 
@@ -15,19 +15,17 @@ wss.on('connection', function connection(ws: any, request:any, client:any) {
   ws.on('error', console.error);
 
 
-  ws.on('message', (msg:any) => {
+  ws.on('message', (msg:string) => {
     try {
       console.log(msg.toString());
-      const parsed = JSON.parse(msg.toString());
-      console.log(parsed);
-      handleRequests(ws, parsed);
+      handleRequests(ws, msg);
     } catch (e) {
       console.error('Invalid JSON from client', e);
-      sendJSON(ws, {
+      sendJSON(ws, JSON.stringify({
         type: 'error',
         data: { message: 'Invalid JSON' },
         id: 0,
-      });
+      }));
     }
   });
 
