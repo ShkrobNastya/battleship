@@ -167,3 +167,110 @@ function sendAttackToAll(
     }),
   );
 }
+
+export function handleRandomAttack(ws: WebSocket, dataString: string) {
+  const data = JSON.parse(dataString);
+
+  const { gameId, indexPlayer } = data;
+
+  const game = DB.games.get(gameId);
+  if (!game) return;
+
+  if (game.currentPlayer !== indexPlayer) {
+    return;
+  }
+
+  const enemy = game.players.find(
+    (roomUser: RoomUser) => roomUser.index !== indexPlayer,
+  );
+  if (!enemy) {
+    console.error('Enemy not found');
+    return;
+  }
+
+  const enemyShips = game.ships[enemy.index];
+
+  if (!game.hits) game.hits = {};
+  if (!game.hits[indexPlayer]) game.hits[indexPlayer] = {};
+
+  const { x, y } = getRandomFreeCell(game.hits[indexPlayer]);
+
+  const posKey = `${x}_${y}`;
+
+  const ship = findShipAt(enemyShips, x, y);
+
+  if (!ship) {
+    game.hits[indexPlayer][posKey] = 'miss';
+
+    sendAttackToAll(game, x, y, indexPlayer, 'miss');
+
+    game.currentPlayer = enemy.index;
+
+    sendMessageToUsers(
+      game,
+      'turn',
+      JSON.stringify({
+        currentPlayer: game.currentPlayer,
+      }),
+    );
+    return;
+  }
+
+  if (!ship.hits) ship.hits = [];
+  ship.hits.push({ x, y });
+
+  game.hits[indexPlayer][posKey] = 'shot';
+
+  const isKilled = isShipKilled(ship);
+
+  if (!isKilled) {
+    sendAttackToAll(game, x, y, indexPlayer, 'shot');
+    sendMessageToUsers(
+      game,
+      'turn',
+      JSON.stringify({
+        currentPlayer: game.currentPlayer,
+      }),
+    );
+    return;
+  }
+
+  sendAttackToAll(game, x, y, indexPlayer, 'killed');
+
+  const contour = generateContour(ship);
+  for (const c of contour) {
+    const k = `${c.x}_${c.y}`;
+    if (!game.hits[indexPlayer][k]) {
+      game.hits[indexPlayer][k] = 'miss';
+      sendAttackToAll(game, c.x, c.y, indexPlayer, 'miss');
+    }
+  }
+
+  const allKilled = enemyShips.every(isShipKilled);
+
+  if (allKilled) {
+    finishGame(game, indexPlayer);
+    return;
+  }
+
+  sendMessageToUsers(
+    game,
+    'turn',
+    JSON.stringify({
+      currentPlayer: game.currentPlayer,
+    }),
+  );
+}
+
+function getRandomFreeCell(hits: Record<string, string>) {
+  while (true) {
+    const x = Math.floor(Math.random() * 10);
+    const y = Math.floor(Math.random() * 10);
+
+    const key = `${x}_${y}`;
+
+    if (!hits[key]) {
+      return { x, y };
+    }
+  }
+}
