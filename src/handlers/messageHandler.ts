@@ -1,24 +1,29 @@
 import { WebSocket } from 'ws';
 import { handleReg } from './playerHandler';
 import { handleCreateRoom, handleAddUserToRoom } from './roomHandler';
+import { handleAddShips } from './gameHandler';
+import { handleAttack, handleRandomAttack } from './attackHandler';
+import { handleSinglePlay } from './singleGameHandler';
 
-export function handleRequests(ws: WebSocket, msg: any) {
-  console.log('Received:', msg.type);
+export function handleRequests(ws: WebSocket, msg: string) {
+  const message = JSON.parse(msg);
 
-  switch (msg.type) {
+  switch (message.type) {
     case 'reg':
-      return handleReg(ws, msg.data);
+      return handleReg(ws, message.data);
     case 'create_room':
       return handleCreateRoom(ws);
     case 'add_user_to_room':
-      return handleAddUserToRoom(ws, msg.data);
-    // case 'add_ships':
-    //   return handleAddShips(ws, msg);
-    // case 'attack':
-    //   return handleAttack(ws, msg);
-    // case 'randomAttack':
-    //   return handleRandomAttack(ws, msg);
+      return handleAddUserToRoom(ws, message.data);
+    case 'add_ships':
+      return handleAddShips(ws, message.data);
+    case 'attack':
+      return handleAttack(ws, message.data);
+    case 'randomAttack':
+      return handleRandomAttack(ws, message.data);
+    case 'single_play':
+      return handleSinglePlay(ws);
     default:
-      console.warn('Unknown command:', msg.type);
+      console.warn('Unknown command:', message.type);
   }
 }
