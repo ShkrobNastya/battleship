@@ -50,6 +50,13 @@ export function handleAttack(ws: WebSocket, dataString: string) {
       }),
     );
 
+    const nextPlayer = game.players.find(
+      (roomUser: RoomUser) => roomUser.index === game.currentPlayer,
+    );
+    if (nextPlayer?.name === 'BOT') {
+      handleBotTurn(game);
+    }
+
     return;
   }
 
@@ -70,6 +77,12 @@ export function handleAttack(ws: WebSocket, dataString: string) {
         currentPlayer: game.currentPlayer,
       }),
     );
+    const nextPlayer = game.players.find(
+      (roomUser: RoomUser) => roomUser.index === game.currentPlayer,
+    );
+    if (nextPlayer?.name === 'BOT') {
+      handleBotTurn(game);
+    }
     return;
   }
 
@@ -97,6 +110,13 @@ export function handleAttack(ws: WebSocket, dataString: string) {
       currentPlayer: game.currentPlayer,
     }),
   );
+
+  const nextPlayer = game.players.find(
+    (roomUser: RoomUser) => roomUser.index === game.currentPlayer,
+  );
+  if (nextPlayer?.name === 'BOT') {
+    handleBotTurn(game);
+  }
 }
 
 function findShipAt(ships: Ship[], x: number, y: number) {
@@ -168,7 +188,7 @@ function sendAttackToAll(
   );
 }
 
-export function handleRandomAttack(ws: WebSocket, dataString: string) {
+export function handleRandomAttack(ws: WebSocket | null, dataString: string) {
   const data = JSON.parse(dataString);
 
   const { gameId, indexPlayer } = data;
@@ -213,6 +233,12 @@ export function handleRandomAttack(ws: WebSocket, dataString: string) {
         currentPlayer: game.currentPlayer,
       }),
     );
+    const nextPlayer = game.players.find(
+      (roomUser: RoomUser) => roomUser.index === game.currentPlayer,
+    );
+    if (nextPlayer?.name === 'BOT') {
+      handleBotTurn(game);
+    }
     return;
   }
 
@@ -232,6 +258,12 @@ export function handleRandomAttack(ws: WebSocket, dataString: string) {
         currentPlayer: game.currentPlayer,
       }),
     );
+    const nextPlayer = game.players.find(
+      (roomUser: RoomUser) => roomUser.index === game.currentPlayer,
+    );
+    if (nextPlayer?.name === 'BOT') {
+      handleBotTurn(game);
+    }
     return;
   }
 
@@ -260,6 +292,13 @@ export function handleRandomAttack(ws: WebSocket, dataString: string) {
       currentPlayer: game.currentPlayer,
     }),
   );
+
+  const nextPlayer = game.players.find(
+    (roomUser: RoomUser) => roomUser.index === game.currentPlayer,
+  );
+  if (nextPlayer?.name === 'BOT') {
+    handleBotTurn(game);
+  }
 }
 
 function getRandomFreeCell(hits: Record<string, string>) {
@@ -273,4 +312,26 @@ function getRandomFreeCell(hits: Record<string, string>) {
       return { x, y };
     }
   }
+}
+
+export function handleBotTurn(game: Game) {
+  const bot = game.players.find((p) => p.name === 'BOT');
+  if (!bot) return;
+
+  if (game.currentPlayer !== bot.index) return;
+
+  setTimeout(() => {
+    handleRandomAttack(
+      null,
+      JSON.stringify({
+        gameId: game.idGame,
+        indexPlayer: bot.index,
+      }),
+    );
+
+    const stillBotsTurn = game.currentPlayer === bot.index;
+    if (stillBotsTurn) {
+      handleBotTurn(game);
+    }
+  }, 1000);
 }

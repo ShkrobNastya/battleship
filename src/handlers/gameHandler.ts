@@ -39,16 +39,19 @@ export function startGame(game: Game) {
   for (const player of players) {
     const playerShips = ships[player.index];
 
-    player.ws.send(
-      JSON.stringify({
-        type: 'start_game',
-        data: JSON.stringify({
-          ships: playerShips,
-          currentPlayerIndex: player.index,
+    if (player.ws) {
+      // проверяем, что ws не null
+      player.ws.send(
+        JSON.stringify({
+          type: 'start_game',
+          data: JSON.stringify({
+            ships: playerShips,
+            currentPlayerIndex: player.index,
+          }),
+          id: 0,
         }),
-        id: 0,
-      }),
-    );
+      );
+    }
   }
 
   sendMessageToUsers(

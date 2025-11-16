@@ -143,16 +143,18 @@ export function handleAddUserToRoom(ws: WebSocket, dataString: string) {
     });
 
     for (const user of room.users) {
-      user.ws.send(
-        JSON.stringify({
-          type: 'create_game',
-          data: JSON.stringify({
-            idGame,
-            idPlayer: user.index,
+      if (user.ws) {
+        user.ws.send(
+          JSON.stringify({
+            type: 'create_game',
+            data: JSON.stringify({
+              idGame,
+              idPlayer: user.index,
+            }),
+            id: 0,
           }),
-          id: 0,
-        }),
-      );
+        );
+      }
     }
   }
 

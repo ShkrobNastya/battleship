@@ -7,7 +7,7 @@ export interface Player {
 }
 
 export interface RoomUser {
-  ws: WebSocket;
+  ws: WebSocket | null;
   name: string;
   index: string | number;
 }
@@ -31,6 +31,7 @@ export interface Game {
   ships: Record<string, Ship[]>;
   hits?: Record<string, Record<string, 'miss' | 'shot'>>;
   currentPlayer: string | number;
+  isSinglePlay?: boolean;
 }
 
 export const DB = {

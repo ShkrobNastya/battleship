@@ -3,6 +3,7 @@ import { handleReg } from './playerHandler';
 import { handleCreateRoom, handleAddUserToRoom } from './roomHandler';
 import { handleAddShips } from './gameHandler';
 import { handleAttack, handleRandomAttack } from './attackHandler';
+import { handleSinglePlay } from './singleGameHandler';
 
 export function handleRequests(ws: WebSocket, msg: string) {
   const message = JSON.parse(msg);
@@ -20,6 +21,8 @@ export function handleRequests(ws: WebSocket, msg: string) {
       return handleAttack(ws, message.data);
     case 'randomAttack':
       return handleRandomAttack(ws, message.data);
+    case 'single_play':
+      return handleSinglePlay(ws);
     default:
       console.warn('Unknown command:', message.type);
   }
